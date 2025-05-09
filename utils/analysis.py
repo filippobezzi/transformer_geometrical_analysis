@@ -1,6 +1,6 @@
 import torch
 
-def mean_vector(buffer):
+def mean_vector(buffer: torch.Tensor):
     """
     Args:
         buffer (torch.Tensor): tensor containing the embedded vectors [shape = (N, D)]
@@ -9,7 +9,7 @@ def mean_vector(buffer):
     """
     return torch.mean(buffer, dim = 0)
 
-def center_of_mass_vector(buffer, mass):
+def center_of_mass_vector(buffer: torch.Tensor, mass: torch.Tensor):
     """
     Args:
         buffer (torch.Tensor): tensor containing the embedded vectors [shape = (N, D)]
@@ -18,4 +18,3 @@ def center_of_mass_vector(buffer, mass):
         v (torch.Tensor): tensor of the weighted mean of all embedded vectors [shape = (N, D)]
     """
     return torch.sum(buffer * mass, dim = 0) / torch.sum(mass)
-

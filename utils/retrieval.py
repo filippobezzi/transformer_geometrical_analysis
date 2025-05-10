@@ -47,7 +47,7 @@ def get_all_embedded_vectors(model):
 
     # self explanatory constants
     MAX_TOKEN_INPUT_SIZE = 1024
-    TOTAL_VOCAB_SIZE = 50256
+    TOTAL_VOCAB_SIZE = 50257
     EMBEDDING_DIMENTIONS = 768
 
     # defining a tensor of 0s that will later be removed
@@ -56,7 +56,7 @@ def get_all_embedded_vectors(model):
     for i in range(0, TOTAL_VOCAB_SIZE, MAX_TOKEN_INPUT_SIZE):
         # ranging thru every possible token in gpt2 vocabulary
         # 1024 at a time cause that's the max it takes
-        input_ids = torch.arange(i, min(i+MAX_TOKEN_INPUT_SIZE, TOTAL_VOCAB_SIZE + 1)).reshape(1, -1)
+        input_ids = torch.arange(i, min(i+MAX_TOKEN_INPUT_SIZE, TOTAL_VOCAB_SIZE)).reshape(1, -1)
         with torch.no_grad():
             vector_embedding = torch.cat((vector_embedding, model.transformer.wte(input_ids)[0]), dim = 0)
 

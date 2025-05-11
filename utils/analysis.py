@@ -1,14 +1,5 @@
 import torch
 
-def mean_vector(buffer: torch.Tensor):
-    """
-    Args:
-        buffer (torch.Tensor): tensor containing the embedded vectors [shape = (N, D)]
-    Returns:
-        v (torch.Tensor): tensor of the mean of all embedded vectors [shape = (N, D)]
-    """
-    return torch.mean(buffer, dim = 0)
-
 def center_of_mass_vector(buffer: torch.Tensor, mass: torch.Tensor):
     """
     Args:

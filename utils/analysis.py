@@ -20,21 +20,34 @@ class PCA:
     DISCLAIMER: IMPLEMENTED WITH CLAUDE SONNET 3.7
     """
     
-    def __init__(self, n_components=None, use_gram=False):
+    def __init__(self, use_gram = False, method: str = "fixed_components", n_components = None, threshold = 0.9, ratio = 2):
         """
         Initialize the PCA object.
         
         Args:
-            n_components (int or None): Number of principal components to keep. If None, keep all components.
-            
             use_gram (bool): Whether to use the Gram matrix approach (True) or the covariance matrix approach (False).
+
+            method ("fixed_components" (default), "fixed_explained_variance", "dropoff"): Method to select how many principal components to keep
+
+            n_components (int or None): Number of principal components to keep. If None, keep all components. Used only if `method = "fixed_components"`
+            
+            threshold (float): threshold used to determine how much explained variance to keep. Used only if `method = "fixed_explained_variance"`
+
+            ratio (float): Ratio between two consecutive differences in the explained variances per component. Used only if `method = "dropoff"`
             
         """
-        self.n_components = n_components
         self.use_gram = use_gram
+        self.method = method
+        self.n_components = n_components
+        self.threshold = threshold
+        self.ratio = ratio
+
+        self.eigenvalues = None
+        self.eigenvectors = None
         self.components_ = None
         self.explained_variance_ = None
         self.mean_ = None
+        return
         
     def fit(self, X):
         """
@@ -60,7 +73,7 @@ class PCA:
         if self.use_gram:
             # Gram matrix approach (for N << D)
             # Compute the Gram matrix: X·X^T (shape: n_samples × n_samples)
-            gram_matrix = torch.mm(X_centered, X_centered.t())
+            gram_matrix = torch.mm(X_centered, X_centered.t()) / (n_samples - 1)
             
             # Perform eigendecomposition on the Gram matrix
             eigenvalues, eigenvectors = torch.linalg.eigh(gram_matrix)
@@ -70,19 +83,20 @@ class PCA:
             eigenvalues = eigenvalues[idx]
             eigenvectors = eigenvectors[:, idx]
             
-            # Scale eigenvalues (divide by n_samples - 1)
-            eigenvalues = eigenvalues / (n_samples - 1)
-            
+            # print(torch.min(eigenvalues, dim = 0))
             # Compute principal components (eigenvectors of covariance matrix) from Gram matrix eigenvectors
-            # v_i = X^T·u_i / sqrt(λ_i)
+            # v_i = X^T·u_i / sqrt( (N-1) λ_i )
             components = []
-            for i in range(len(eigenvalues)):
-                if eigenvalues[i] > 1e-10:  # Avoid division by zero
-                    v_i = torch.mm(X_centered.t(), eigenvectors[:, i:i+1]) / torch.sqrt(eigenvalues[i] * (n_samples - 1))
+            for i in range(len(eigenvalues) - 1):
+                if eigenvalues[i] > 1e-8:  # Avoid division by zero
+                    v_i = torch.mm(X_centered.t(), eigenvectors[:,i].reshape(-1, 1)) / torch.sqrt(eigenvalues[i] * (n_samples - 1))
                     components.append(v_i.t())
             
             self.components_ = torch.cat(components, dim=0)
             self.explained_variance_ = eigenvalues[:len(components)]
+
+            # check if eigenval has at least one 0
+            if (len(eigenvalues) == len(self.components_)): print("No 0 valued eigenvalue")
             
         else:
             # Standard approach using covariance matrix
@@ -100,12 +114,32 @@ class PCA:
             self.components_ = eigenvectors.t()  # Shape: (n_components, n_features)
             self.explained_variance_ = eigenvalues
         
-        # Limit the number of components if specified
-        if self.n_components is not None:
+            
+        self._select_components()
+        return self
+
+    def _select_components(self):
+        total_explained_variance = torch.sum(self.explained_variance_)
+
+        if (self.method == "fixed_components"):
             self.components_ = self.components_[:self.n_components]
             self.explained_variance_ = self.explained_variance_[:self.n_components]
-            
-        return self
+        
+        elif (self.method == "fixed_explained_variance"):
+            normalized_explained_variance = self.explained_variance_ / torch.sum(self.explained_variance_)
+            self.components_ = self.components_[torch.cumsum(normalized_explained_variance, dim = 0) < self.threshold,:]
+            self.explained_variance_ = self.explained_variance_[:len(self.components_)]
+
+        elif (self.method == "dropoff"):
+            jumps = self.explained_variance_[:-1] - self.explained_variance_[1:]
+            for i in range(len(jumps)-1):
+                if (jumps[i] / jumps[i+1] > self.ratio):
+                    self.explained_variance_ = self.explained_variance_[:i+1]
+                    self.components_ = self.components_[:i+1,:]
+                    break
+
+        print(torch.sum(self.explained_variance_) / total_explained_variance)
+        return
     
     def transform(self, X):
         """

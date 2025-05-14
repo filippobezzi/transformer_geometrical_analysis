@@ -138,6 +138,17 @@ class PCA:
                     self.components_ = self.components_[:i+1,:]
                     break
 
+        elif (self.method == "dropoff_with_threshold"):
+            jumps = self.explained_variance_[:-1] - self.explained_variance_[1:]
+            for i in range(len(jumps)-1):
+                if (jumps[i+1] / jumps[i] > self.ratio):
+                    if (torch.sum(self.explained_variance_[:i+1]) / total_explained_variance < self.threshold):
+                        continue
+                    self.explained_variance_ = self.explained_variance_[:i+1]
+                    self.components_ = self.components_[:i+1,:]
+                    break
+
+
         print(torch.sum(self.explained_variance_) / total_explained_variance)
         return
     

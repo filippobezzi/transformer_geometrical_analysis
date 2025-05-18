@@ -11,28 +11,54 @@ def get_activations(model):
 
     # dict to store all activations
     activations = {
-        "attn_inputs": [],
+        "wte_outputs": [],
+        "wpe_outputs": [],
+        "ln_1_inputs": [],
+        "ln_1_outputs": [],
+        # "attn_inputs": [], # same as ln_1_outputs
         "attn_attentions": [], # this will have to be saved manually from output.activations
         "attn_outputs": [],
-        "mlp_inputs": [],
+        "ln_2_inputs": [],
+        "ln_2_outputs": [],
+        # "mlp_inputs": [], # same as ln_2_outputs
         "mlp_outputs": []
     }
+
+    def hook_wte(module, input, output):
+        activations["wte_outputs"].append(output[0])
+
+    def hook_wpe(module, input, output):
+        activations["wpe_outputs"].append(output[0])
 
     # hook functions to save the activations
     def hook_attention(module, input, output):
         # input: (hidden_states,) | output: hidden_states after attention
-        activations["attn_inputs"].append(input[0][0])
+        # activations["attn_inputs"].append(input[0][0])
         # we save the embedded vectors as a whole and not partitioned as they have been processed by the heads
         activations["attn_outputs"].append(output[0][0]) 
 
     # same for the mlp
     def hook_mlp(module, input, output):
-        activations["mlp_inputs"].append(input[0][0])
+        # activations["mlp_inputs"].append(input[0][0])
         activations["mlp_outputs"].append(output[0])
 
+    # same for the ln_1
+    def hook_ln_1(module, input, output):
+        activations["ln_1_inputs"].append(input[0][0])
+        activations["ln_1_outputs"].append(output[0])
+
+    # same for the ln_2
+    def hook_ln_2(module, input, output):
+        activations["ln_2_inputs"].append(input[0][0])
+        activations["ln_2_outputs"].append(output[0])
+
+    model.transformer.wte.register_forward_hook(hook_wte)
+    model.transformer.wpe.register_forward_hook(hook_wpe)
     # we now register the hooks so that at each block they are called
     for i, block in enumerate(model.transformer.h):
+        block.ln_1.register_forward_hook(hook_ln_1)
         block.attn.register_forward_hook(hook_attention)
+        block.ln_2.register_forward_hook(hook_ln_2)
         block.mlp.register_forward_hook(hook_mlp)
     
     return activations

@@ -43,7 +43,7 @@ class BufferGeometry:
         last_vector = self.extract_token_vector(token_idx)
         last_vector_manifold = manifold[manifold_token_idx, :]
         cos_sim = cosine_similarity(last_vector.reshape(1, -1), last_vector_manifold.reshape(1, -1))
-        return cos_sim
+        return np.array(cos_sim).reshape(-1)
     
     def mean_vector(self):
         return(np.mean(self.buffer,axis = 0))

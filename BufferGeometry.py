@@ -10,22 +10,38 @@ class BufferGeometry:
         self.buffer = buffer
 
 
-    def grassmann_distance(self,manifold_1):
-        """ 
-        Function that computes the Grassmann distance between 2 manifolds
-        of different sizes (using the Cross Gram Matrix)
+    def grassmann_distance(self, manifold_1):
         """
-        #compute cross Gram
-        cross_gram = np.dot(self.buffer,manifold_1.T)
+        Computes the Grassmann geodesic distance between two reduced-rank
+        matrices (e.g., after truncated SVD reconstruction).
 
-        #perform SVD
-        _, s_values, _ = la.svd(cross_gram) 
+        Assumes:
+        - self.buffer and manifold_1 are already reduced matrices of shape (n, d_reduced)
+        - They are not guaranteed to be orthonormal, so we extract orthonormal bases.
 
-        #extract angles
+        Returns:
+        - gd: float
+            The Grassmannian geodesic distance.
+        """
+        X1 = self.buffer
+        X2 = manifold_1
+
+        # Orthonormalize the reduced matrices using QR
+        Q1, _ = la.qr(X1, mode='economic')
+        Q2, _ = la.qr(X2, mode='economic')
+
+        # Compute the cross-Gram matrix (inner product of orthonormal bases)
+        cross_gram = np.dot(Q1.T, Q2)
+
+        # Perform SVD on the cross-Gram matrix
+        _, s_values, _ = la.svd(cross_gram)
+
+        # Compute principal angles and Grassmann distance
         angles = np.arccos(np.clip(s_values, -1.0, 1.0))
-        gd = np.sqrt(np.sum(angles**2))
-        
+        gd = np.sqrt(np.sum(angles ** 2))
+
         return gd
+
     
     """def volume(self):
         gram_matrix = np.dot(self.buffer.T, self.buffer)
@@ -33,8 +49,8 @@ class BufferGeometry:
     
     def volume(self):
         _, S, _ = la.svd(self.buffer, full_matrices=False)
-
-        return np.prod(S)
+        S = np.log(S)
+        return np.sum(S)
     
     def extract_token_vector(self,token_idx = -1):
         return self.buffer[token_idx,:]

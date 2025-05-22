@@ -27,8 +27,8 @@ class BufferGeometry:
         X2 = manifold_1
 
         # Orthonormalize the reduced matrices using QR
-        Q1, _ = la.qr(X1, mode='economic')
-        Q2, _ = la.qr(X2, mode='economic')
+        Q1, _ = la.qr(X1.T, mode='economic')
+        Q2, _ = la.qr(X2.T, mode='economic')
 
         # Compute the cross-Gram matrix (inner product of orthonormal bases)
         cross_gram = np.dot(Q1.T, Q2)

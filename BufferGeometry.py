@@ -27,10 +27,10 @@ class BufferGeometry:
         X2 = manifold_1
 
         # Orthonormalize the reduced matrices using QR
-        Q1, _ = la.qr(X1, mode='economic')
-        Q2, _ = la.qr(X2, mode='economic')
+        Q1, _ = la.qr(X1.T, mode='economic')
+        Q2, _ = la.qr(X2.T, mode='economic')
 
-        # Compute the cross-Gram matrix
+        # Compute the cross-Gram matrix (inner product of orthonormal bases)
         cross_gram = np.dot(Q1.T, Q2)
 
         # Perform SVD on the cross-Gram matrix
@@ -42,6 +42,12 @@ class BufferGeometry:
 
         return gd
 
+    def extract_Q(self): 
+        # QR decomposition
+        Q, _ = la.qr(self.buffer.T, mode='economic')
+
+        return Q
+    
     """def volume(self):
         gram_matrix = np.dot(self.buffer.T, self.buffer)
         return np.sqrt(la.det(gram_matrix))"""

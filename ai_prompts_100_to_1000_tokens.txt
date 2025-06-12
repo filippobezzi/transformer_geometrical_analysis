@@ -1,0 +1,19 @@
+Describe in a concise paragraph how artificial intelligence might impact daily life in the next 10 years. Focus on one specific area, such as healthcare, education, transportation, or entertainment.
+
+Discuss the potential positive and negative effects of AI on the healthcare industry. Include at least two examples of AI-driven innovations (e.g., diagnostics, robotic surgery) and briefly mention an ethical or privacy concern that might arise from their use.
+
+Write an opinion article analyzing how AI is transforming the education system. Start by describing current uses of AI in classrooms, such as adaptive learning platforms or automated grading. Then explore how these tools might evolve in the future and affect the roles of teachers and students. Conclude with a question about the limits of machine involvement in education.
+
+Craft a balanced essay that examines how artificial intelligence is reshaping the modern workplace. Discuss automation, job displacement, and the emergence of new roles. Include real-world examples from industries like manufacturing, finance, and software development. Finally, address what skills future workers should focus on to remain competitive.
+
+Write a report that outlines both the opportunities and threats that AI poses to global governance and democracy. Discuss the use of AI in surveillance, disinformation campaigns, and decision-making algorithms in public administration. Mention international efforts to regulate AI and highlight the challenge of aligning global standards across different political systems.
+
+Compose a feature article for a science and technology magazine exploring how artificial intelligence may influence human creativity. Focus on AI-generated art, literature, and music. Describe at least three tools or platforms that facilitate human–AI creative collaboration. Reflect on whether AI can be truly creative or if it only mimics creativity based on data. Include perspectives from both artists and technologists.
+
+Write a comprehensive essay evaluating the ethical implications of autonomous AI systems in life-critical domains. Focus on areas like autonomous vehicles, medical diagnosis tools, and military drones. Examine potential benefits and dangers, referencing recent case studies. Conclude with suggestions for responsible oversight and public policy.
+
+Create an in-depth analysis of the role of AI in combating climate change. Include examples such as AI-driven climate modeling, smart energy systems, and precision agriculture. Discuss the technological, environmental, and socio-economic factors that influence AI’s effectiveness in this area. Explore possible limitations and unintended consequences, and suggest policies to ensure beneficial outcomes.
+
+Write a detailed white paper aimed at policymakers discussing the long-term implications of general artificial intelligence. Define general AI and contrast it with narrow AI. Analyze the risks, such as existential threats and misaligned objectives, along with benefits like problem-solving on a global scale. Include philosophical, technical, and societal perspectives. Conclude with a roadmap for future research and governance.
+
+Compose a comprehensive and nuanced essay discussing the philosophical, economic, and ethical dimensions of artificial intelligence integration into human society. Begin with a brief history of AI development, then transition into its transformative potential across major sectors including labor, governance, and interpersonal relationships. Delve into debates on AI consciousness, rights, and the shifting definition of what it means to be human. Reference influential thinkers, existing literature, and contemporary developments. Conclude with reflections on how society should prepare for an AI-augmented future.

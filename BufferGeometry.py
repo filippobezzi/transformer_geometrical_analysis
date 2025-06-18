@@ -34,7 +34,7 @@ class BufferGeometry:
         cross_gram = np.dot(Q1.T, Q2)
 
         # Perform SVD on the cross-Gram matrix
-        _, s_values, _ = la.svd(cross_gram)
+        _, s_values, _ = la.svd(cross_gram, lapack_driver="gesvd")
 
         # Compute principal angles and Grassmann distance
         angles = np.arccos(np.clip(s_values, -1.0, 1.0))
@@ -42,6 +42,11 @@ class BufferGeometry:
 
         return gd
 
+    def extract_Q(self): 
+        # QR decomposition
+        Q, _ = la.qr(self.buffer.T, mode='economic')
+
+        return Q
     
     """def volume(self):
         gram_matrix = np.dot(self.buffer.T, self.buffer)

@@ -36,7 +36,7 @@ def get_activations(model):
         activations["attn.c_proj"].append(output[0])
     
     # def hook_attn(module, input, output):
-        # activations["attn"].append(output[0][0])
+    #     activations["attn"].append(output[0][0])
 
     def hook_ln_2(module, input, output):
         activations["ln_2"].append(output[0])

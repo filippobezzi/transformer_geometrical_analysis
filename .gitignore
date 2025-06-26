@@ -1,3 +1,6 @@
 # cache and other subproducts
 *__pycache__*
+
+# output directories
 data/
+plots/

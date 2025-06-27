@@ -22,6 +22,7 @@ def get_activations(model):
         # "mlp.act": [],
         "mlp.c_proj": [],
         # "mlp": []
+        "h": []
     }
 
     def hook_ln_1(module, input, output):
@@ -53,6 +54,9 @@ def get_activations(model):
     # def hook_mlp(module, input, output):
         # activations["mlp"].append(output[0])
 
+    def hook_h(module, input, output):
+        activations["h"].append(output[0][0])
+
     # we now register the hooks so that at each block they are called
     for i, block in enumerate(model.transformer.h):
         block.ln_1.register_forward_hook(hook_ln_1)
@@ -64,6 +68,8 @@ def get_activations(model):
         # block.mlp.act.register_forward_hook(hook_mlp_act)
         block.mlp.c_proj.register_forward_hook(hook_mlp_c_proj)
         # block.mlp.register_forward_hook(hook_mlp)
+        block.register_forward_hook(hook_h)
+
     
     return activations
 

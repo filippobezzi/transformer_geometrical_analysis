@@ -450,12 +450,6 @@ def rank_plot(rank_matrix):
     
     -) rank_matrix : dict
         Dictionary mapping prompts to their orthonormal basis matrices
-        
-    Visualization:
-    
-    - Line plot with square markers showing rank progression
-    - Y-axis shows fraction of total 768-dimensional space used
-    - X-axis represents different prompts
     
     """
     ranks = []
@@ -464,14 +458,15 @@ def rank_plot(rank_matrix):
             rank = matrix_rank(mat)
             ranks.append(rank/768)
 
-    plt.plot(np.arange(len(ranks)), ranks, marker='s')
+    plt.title("Effective Rank per Prompt")
+    plt.plot(np.arange(len(ranks)), ranks, marker='s', color = 'red')
     plt.xlabel("Prompts")
     plt.ylabel("Fraction of spanned space")
 
     plt.grid(alpha=0.6)
     plt.show()
 
-def plot_heatmap(gd_heatmap):
+def plot_heatmap(gd_heatmap, token_counts):
     """
     Create a comprehensive heatmap visualization of pairwise Grassmann distances.
     
@@ -483,6 +478,9 @@ def plot_heatmap(gd_heatmap):
     -) gd_heatmap : numpy.ndarray
         Array of shape (n_prompts, n_blocks, n_blocks) containing
         pairwise Grassmann distances
+    
+    -) token_counts : numpy.array
+        Number of tokens in the prompt (used for the title)
     
     Color Interpretation:
     
@@ -510,20 +508,22 @@ def plot_heatmap(gd_heatmap):
         hm = sns.heatmap(
             gd_heatmap[i],
             ax=ax,
-            cmap='viridis',
+            cmap='YlOrRd',
             vmin=vmin,
             vmax=vmax,
-            cbar=(i==0),  
+            cbar=False,  
             cbar_ax=None   
         )
-        ax.set_title(f"Heatmap of Grassmann distance with prompt {i + 1}")
+        ax.set_title(f"{token_counts[i]} tokens", fontsize = 16)
+        ax.tick_params(labelsize=12, width=2, length=6)
 
     # Create a single colorbar for all subplots
     norm = plt.Normalize(vmin=vmin, vmax=vmax)
-    sm = plt.cm.ScalarMappable(cmap='viridis', norm=norm)
+    sm = plt.cm.ScalarMappable(cmap="YlOrRd", norm=norm)
     sm.set_array([]) 
     cbar = fig.colorbar(sm, cax=cbar_ax)
-    cbar.set_label("Grassmann distance")
+    cbar.set_label("Grassmann distance", fontsize = 15)
+    cbar.ax.tick_params(labelsize=12, width=2, length=6)         
 
     plt.tight_layout(rect=[0, 0, 0.9, 1])
     plt.show()

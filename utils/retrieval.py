@@ -1,10 +1,11 @@
 import torch
 
-def get_activations(model):
+def get_activations(model, input_acts: bool = True):
     """
     Function that attaches hooks that save the activations of the model
     Args:
         model (GPT2LMHeadModel): the gpt2 model in which hook functions will be attached
+        input_acts (bool, default = True): whether to save the input or output activations
     Returns:
         activations (dict): empty dictionary where the activations of attention and mlp will be stored 
     """
@@ -16,60 +17,66 @@ def get_activations(model):
         "attn.c_attn.k": [],
         "attn.c_attn.v": [],
         "attn.c_proj": [],
-        # "attn": [],
         "ln_2": [],
         "mlp.c_fc": [],
-        # "mlp.act": [],
         "mlp.c_proj": [],
-        # "mlp": []
-        "h": []
     }
 
     def hook_ln_1(module, input, output):
-        activations["ln_1"].append(output[0])
+        if input_acts: 
+            activations["ln_1"].append(input[0][0])
+        else: 
+            activations["ln_1"].append(output[0])
+        return
 
     def hook_attn_c_attn(module, input, output):
-        activations["attn.c_attn.q"].append(output[0][:,:768])
-        activations["attn.c_attn.k"].append(output[0][:,768:1536])
-        activations["attn.c_attn.v"].append(output[0][:,1536:])
+        if input_acts:
+            activations["attn.c_attn.q"].append(input[0][0])
+            activations["attn.c_attn.k"].append(input[0][0])
+            activations["attn.c_attn.v"].append(input[0][0])
+        else:
+            activations["attn.c_attn.q"].append(output[0][:,:768])
+            activations["attn.c_attn.k"].append(output[0][:,768:1536])
+            activations["attn.c_attn.v"].append(output[0][:,1536:])
+        return
 
     def hook_attn_c_proj(module, input, output):
-        activations["attn.c_proj"].append(output[0])
-    
-    # def hook_attn(module, input, output):
-    #     activations["attn"].append(output[0][0])
+        if input_acts:
+            activations["attn.c_proj"].append(input[0][0])
+        else:
+            activations["attn.c_proj"].append(output[0])
+        return
 
     def hook_ln_2(module, input, output):
-        activations["ln_2"].append(output[0])
+        if input_acts:
+            activations["ln_2"].append(input[0][0])
+        else:
+            activations["ln_2"].append(output[0])
+        return
     
     def hook_mlp_c_fc(module, input, output):
-        activations["mlp.c_fc"].append(output[0])
-
-    # def hook_mlp_act(module, input, output):
-        # activations["mlp.act"].append(output[0])
+        if input_acts:
+            activations["mlp.c_fc"].append(input[0][0])
+        else:
+            activations["mlp.c_fc"].append(output[0])
+        return
 
     def hook_mlp_c_proj(module, input, output):
-        activations["mlp.c_proj"].append(output[0])
+        if input_acts:
+            activations["mlp.c_proj"].append(input[0][0])
+        else:
+            activations["mlp.c_proj"].append(output[0])
+        return
 
-    # def hook_mlp(module, input, output):
-        # activations["mlp"].append(output[0])
-
-    def hook_h(module, input, output):
-        activations["h"].append(output[0][0])
 
     # we now register the hooks so that at each block they are called
     for i, block in enumerate(model.transformer.h):
         block.ln_1.register_forward_hook(hook_ln_1)
         block.attn.c_attn.register_forward_hook(hook_attn_c_attn)
         block.attn.c_proj.register_forward_hook(hook_attn_c_proj)
-        # block.attn.register_forward_hook(hook_attn)
         block.ln_2.register_forward_hook(hook_ln_2)
         block.mlp.c_fc.register_forward_hook(hook_mlp_c_fc)
-        # block.mlp.act.register_forward_hook(hook_mlp_act)
         block.mlp.c_proj.register_forward_hook(hook_mlp_c_proj)
-        # block.mlp.register_forward_hook(hook_mlp)
-        block.register_forward_hook(hook_h)
-
     
     return activations
 

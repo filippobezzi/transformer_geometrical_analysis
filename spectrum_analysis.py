@@ -1,13 +1,11 @@
-import matplotlib.pyplot as plt
 import numpy as np
 import torch
 
 from transformers import GPT2Tokenizer, GPT2LMHeadModel
 
-from utils.distributions import marchenko_pastur_svals
 from utils.retrieval import get_activations, extract_weights
-from utils.storage import save_overlaps, save_projections, save_svals
-from utils.visualization import plot_layer_overlaps, plot_layer_projections, plot_layer_svals
+from utils.storage import save_overlaps, save_svals
+from utils.visualization import plot_layer_overlaps, plot_layer_svals
 
 # constants of the model
 EMBEDDING_DIMENTIONS = 768
@@ -24,7 +22,7 @@ def load_model(gpt2_version: str = None):
 
 
 def main():
-    
+
     model, tokenizer = load_model()
     TOTAL_VOCAB_SIZE = tokenizer.vocab_size
 
@@ -49,7 +47,7 @@ def main():
             phrases = [line.strip() for line in f.readlines() if line.strip()]
 
         prompts = []
-        min_length = MAXIMUM_INPUT_LENGTH 
+        min_length = MAXIMUM_INPUT_LENGTH
         for p in phrases:
             i = tokenizer(p, return_tensors="pt")["input_ids"]
             l = i.shape[1]
@@ -60,12 +58,15 @@ def main():
         n_prompts = len(prompts)
         n_tokens = min_length
 
-    ### 
+    data_dir = "results/data"
+    plot_dir = "results/plots"
+
+    ###
 
     input_activations = get_activations(model)
 
     ###
-    
+
     # runnning all the prompts to obtain all activations
     for prompt in prompts:
         with torch.no_grad():
@@ -84,6 +85,9 @@ def main():
 
     def reorder_sublayer_acts(sublayer: str, activations: dict):
         """
+        Given a dict `activations` obtained from `get_activations`,
+        it selects only elements relative to `sublayer` and
+        separates them in the 12 blocks, maintaining the prompt order.
         Args:
             sublayer (str):
             activations (dict):
@@ -91,21 +95,21 @@ def main():
             ordered_acts (dict):
         """
         acts = activations[sublayer]
-        # selecting an element since it is a list
+        # selecting an element since the value is a list
         N, D = acts[0].shape
         ordered_acts = {
             # keys are the block number
-            str(i): 
+            str(i):
                 # the value is a torch.tensor of shape (n_prompts, n, d)
                 torch.cat(
-                    [acts[p * N_BLOCKS + i].reshape(1,N,D) for p in range(n_prompts)], 
+                    [acts[p * N_BLOCKS + i].reshape(1,N,D) for p in range(n_prompts)],
                     dim = 0
-                ) 
-            for i in range(12)
+                )
+            for i in range(N_BLOCKS)
         }
         return ordered_acts
 
-    
+
     for sublayer in sublayer_selection:
         # excluding the normalization layers from the analysis
         if sublayer in ["ln_1", "ln_2"]: continue

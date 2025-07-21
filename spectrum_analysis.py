@@ -1,6 +1,7 @@
 import numpy as np
 import torch
 
+from tqdm import tqdm
 from transformers import GPT2Tokenizer, GPT2LMHeadModel
 
 from utils.retrieval import get_activations, extract_weights
@@ -29,37 +30,30 @@ def main():
     ### PROMPT CREATION/SELECTION
     n_prompts = 100
     n_tokens = 100
-    prompt_type = "random"
+    prompt_type = "eco"
     data_dir = None
     plot_dir = None
 
+    print("\nCreating prompts.")
     # prompts are randomly generated
     if prompt_type == "random":
-        data_dir = "prova/data"
-        plot_dir = "prova/plots"
-        prompts = [torch.randint(0, TOTAL_VOCAB_SIZE, size = (1, n_tokens)) for _ in range(n_prompts)]
-
-    # prompts are taken from _input_phrases.txt
-    elif prompt_type == "input_phrases":
-        data_dir = "ip/data"
-        plot_dir = "ip/plots"
-        with open("_input_phrases.txt", "r") as f:
+        data_dir = "random/data"
+        plot_dir = "random/plots"
+        with torch.no_grad():
+            prompts = [torch.randint(0, TOTAL_VOCAB_SIZE, size = (1, n_tokens)) for _ in range(n_prompts)]
+    
+    # we take as prompts `n_prompts` random `n_tokens`-long passages of an umberto eco essay
+    elif prompt_type == "eco":
+        data_dir = "eco/data"
+        plot_dir = "eco/plots"
+        with open("eco.txt", "r") as f:
             phrases = [line.strip() for line in f.readlines() if line.strip()]
-
+        with torch.no_grad():
+            tokens = tokenizer(phrases[0], return_tensors="pt")["input_ids"]
         prompts = []
-        min_length = MAXIMUM_INPUT_LENGTH
-        for p in phrases:
-            i = tokenizer(p, return_tensors="pt")["input_ids"]
-            l = i.shape[1]
-            if l < min_length:
-                min_length = l
-            prompts.append(i)
-
-        n_prompts = len(prompts)
-        n_tokens = min_length
-
-    data_dir = "results/data"
-    plot_dir = "results/plots"
+        for i in range(n_prompts):
+            idx = np.random.randint(0, tokens.shape[1] - n_tokens)
+            prompts.append(tokens[:,idx:(idx + n_tokens)])
 
     ###
 
@@ -67,11 +61,12 @@ def main():
 
     ###
 
+    print("\nRunning prompts:")
+
     # runnning all the prompts to obtain all activations
-    for prompt in prompts:
+    for prompt in tqdm(prompts):
         with torch.no_grad():
-            # making sure all prompts have the same lenght
-            _ = model(prompt[:,:n_tokens])
+            _ = model(prompt)
 
     ###
 
@@ -112,9 +107,9 @@ def main():
 
     for sublayer in sublayer_selection:
         # excluding the normalization layers from the analysis
-        if sublayer in ["ln_1", "ln_2"]: continue
+        if sublayer in ["ln_1", "ln_2", "attn.c_proj"]: continue
 
-        print(sublayer)
+        print(f"\nProcessing: {sublayer}")
         acts = reorder_sublayer_acts(sublayer, input_activations)
 
         w_sigmas = []
@@ -181,4 +176,5 @@ def main():
     return
 
 if __name__=="__main__":
-    main()
+    with torch.no_grad():
+        main()

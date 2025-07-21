@@ -1,7 +1,4 @@
-# cache and other subproducts
-*__pycache__*
-
-*prova*
-# output directories
-# data/
-# plots/
+# too many files
+# ignoring all by default
+# use `git add -f file` to add an ignored file if necessary
+*

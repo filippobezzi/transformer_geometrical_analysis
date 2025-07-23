@@ -104,7 +104,7 @@ def main(sublayer: str = None, block: int = None, prompt_type: str = None):
     w_svals = w_svals[:max_rank]
     w_Vt = w_Vt[:max_rank,:]
 
-    n_iter = 10
+    n_iter = 100
     n_prompts = 10
     n_tokens = 100
     
@@ -177,11 +177,9 @@ if __name__=="__main__":
             for block in blocks:
                 print(sublayer, block)
 
-                # main(sublayer, block, "random")
-                # main(sublayer, block, "eco")
+                main(sublayer, block, "random")
+                main(sublayer, block, "eco")
                 
                 plot_overlap_bands(sublayer, block, "random", 768, n, data_dir, plot_dir)
                 plot_overlap_bands(sublayer, block, "eco", 768, n, data_dir, plot_dir)
                 plot_overlap_comparison_bands(sublayer, block, 768, n, data_dir, plot_dir)
-                
-            break

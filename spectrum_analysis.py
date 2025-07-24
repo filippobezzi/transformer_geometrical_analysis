@@ -1,3 +1,4 @@
+import matplotlib
 import numpy as np
 import torch
 
@@ -107,7 +108,7 @@ def main():
 
     for sublayer in sublayer_selection:
         # excluding the normalization layers from the analysis
-        if sublayer in ["ln_1", "ln_2", "attn.c_proj"]: continue
+        if sublayer in ["ln_1", "ln_2"]: continue
 
         print(f"\nProcessing: {sublayer}")
         acts = reorder_sublayer_acts(sublayer, input_activations)
@@ -167,6 +168,7 @@ def main():
             projections_dict[f"{idx}"] = projections.detach().numpy().reshape(-1,)
 
 
+        # matplotlib.rcParams.update({'font.size': 20})
         save_svals(svals_dict, np.array(w_sigmas).reshape(1,-1), sublayer, data_dir)
         save_overlaps(overlaps_dict, sublayer, data_dir)
         # save_projections(projections_dict, sublayer, data_dir)

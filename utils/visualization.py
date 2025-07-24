@@ -30,8 +30,8 @@ def plot_layer_svals(layer: str, m: int, n: int, data_dir: str, plot_dir: str):
 
         # plotting
         ax = axs[i//4, i%4]
-        ax.hist(svals, bins = "fd", density = True)
-        mp_plot, = ax.plot(x_mp, y_mp, color = "r", linestyle = "--")
+        ax.hist(svals, bins = "fd", density = True, color = "blue")
+        mp_plot, = ax.plot(x_mp, y_mp, color = "r", alpha = 0.7, linestyle = "--")
         ax.set_title(f"block {i}")
         ax.set_xlim(0,x_mp[-1])
     
@@ -79,15 +79,15 @@ def plot_layer_overlaps(layer: str, m: int, n: int, data_dir: str, plot_dir: str
 
         # plotting
         ax = axs[i//4, i%4]
-        ax.plot(np.arange(overlaps.shape[0]), overlaps)
-        mp_bounds = ax.vlines(x = [idx_lower, idx_upper], ymin = 0, ymax = 1, color = "r", linestyle = "--")
-        ax.grid(alpha = 0.7)
+        ax.plot(np.arange(overlaps.shape[0]), overlaps, color = "blue")
+        mp_bounds = ax.vlines(x = [idx_lower, idx_upper], ymin = 0, ymax = 1, color = "r", alpha = 0.7, linestyle = "--")
+        ax.grid(alpha = 0.5)
         ax.set_ylim(0,0.5)
         ax.set_title(f"block {i}")
     
     # labels
-    for ax in axs[2,:]: ax.set_xlabel("Right singular vector index")
-    for ax in axs[:,0]: ax.set_ylabel("Overlap")
+    for ax in axs[2,:]: ax.set_xlabel(r"$k$")
+    for ax in axs[:,0]: ax.set_ylabel(r"$O_k$")
 
     for ax in axs[:2,:].reshape(-1,): ax.tick_params(labelbottom = False, bottom = False)
     for ax in axs[:,1:].reshape(-1,): ax.tick_params(labelleft = False, left = False)

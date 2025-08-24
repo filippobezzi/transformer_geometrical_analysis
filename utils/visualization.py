@@ -6,14 +6,24 @@ import torch
 
 from matplotlib import patches
 
+from utils.constants import *
 from utils.distributions import marchenko_pastur_svals
 
 
-def plot_layer_svals(layer: str, m: int, n: int, data_dir: str, plot_dir: str):
+def plot_svals_all_blocks(layer: str, m: int, n: int, ddir: str = DATA_DIR, fdir: str = FIGURES_DIR):
+    """
+    Saves a file "figures/svals_all_blocks/layer.pdf" containing histogram plots of the singular values of every block.
+    Args:
+        layer (str):
+        m (int):
+        n (int):
+        ddir (str, default: DATA_DIR):
+        fdir (str, default: FIGURES_DIR):
+    """
+
+    svals_df = pd.read_csv(f"{ddir}/svals/{layer}.csv")
+
     fig, axs = plt.subplots(3, 4, figsize = (12, 8))
-
-    svals_df = pd.read_csv(f"{data_dir}/svals/{layer}.csv")
-
     fig.suptitle(f"{layer} weights singular values distributions")
     for i in range(12):
         # retrieving block specific data
@@ -37,7 +47,7 @@ def plot_layer_svals(layer: str, m: int, n: int, data_dir: str, plot_dir: str):
     
     # labels
     for ax in axs[2,:]: ax.set_xlabel(r"$s$")
-    for ax in axs[:,0]: ax.set_ylabel("density")
+    for ax in axs[:,0]: ax.set_ylabel("Density")
 
     # legend
     mp_plot.set_label("MP distribution")
@@ -45,7 +55,7 @@ def plot_layer_svals(layer: str, m: int, n: int, data_dir: str, plot_dir: str):
 
     fig.tight_layout()
 
-    saving_dir = f"{plot_dir}/svals"
+    saving_dir = f"{fdir}/svals_all_blocks"
     if not os.path.isdir(saving_dir):
         os.makedirs(saving_dir) 
 
@@ -54,12 +64,21 @@ def plot_layer_svals(layer: str, m: int, n: int, data_dir: str, plot_dir: str):
     return
 
 
-def plot_layer_overlaps(layer: str, m: int, n: int, data_dir: str, plot_dir: str):
+def plot_overlaps_all_blocks(layer: str, m: int, n: int, ddir: str = DATA_DIR, fdir: str = FIGURES_DIR):
+    """
+    Saves a file "figures/overlaps_all_blocks/layer.pdf" containing line plots of the overlaps of every block.
+    Args:
+        layer (str):
+        m (int):
+        n (int):
+        ddir (str, default: DATA_DIR):
+        fdir (str, default: FIGURES_DIR):
+    """
+
+    svals_df = pd.read_csv(f"{ddir}/svals/{layer}.csv")
+    overlaps_df = pd.read_csv(f"{ddir}/overlaps/{layer}.csv")
+
     fig, axs = plt.subplots(3, 4, figsize = (12, 8))
-
-    svals_df = pd.read_csv(f"{data_dir}/svals/{layer}.csv")
-    overlaps_df = pd.read_csv(f"{data_dir}/overlaps/{layer}.csv")
-
     fig.suptitle(f"{layer} overlaps")
     for i in range(12):
         # retrieving block specific data
@@ -97,45 +116,7 @@ def plot_layer_overlaps(layer: str, m: int, n: int, data_dir: str, plot_dir: str
 
     fig.tight_layout()
 
-    saving_dir = f"{plot_dir}/overlaps"
-    if not os.path.isdir(saving_dir):
-        os.makedirs(saving_dir) 
-
-    plt.savefig(f"{saving_dir}/{layer}.pdf")
-
-    return
-
-
-def plot_layer_projections(layer: str, m: int, n: int, data_dir: str, plot_dir: str):
-    fig, axs = plt.subplots(3, 4, figsize = (12, 8))
-
-    projections_df = pd.read_csv(f"{data_dir}/projections/{layer}.csv")
-
-    fig.suptitle(f"{layer} projections")
-    for i in range(12):
-        # retrieving block specific data
-        projections = projections_df.iloc[:,i+1].to_numpy().reshape(m,m)
-
-        # plotting
-        x, y = np.meshgrid(np.arange(projections.shape[0]), np.arange(projections.shape[1]))
-
-        ax = axs[i//4, i%4]
-        heatmap = ax.pcolormesh(x, y, projections, cmap = "grey_r", vmin=0)
-        ax.set_title(f"block {i}")
-    
-    # labels
-    for ax in axs[2,:]: ax.set_xlabel("ACM eigenvector index")
-    for ax in axs[:,0]: ax.set_ylabel("W right singular vector index")
-
-    for ax in axs[:2,:].reshape(-1,): ax.tick_params(labelbottom = False, bottom = False)
-    for ax in axs[:,1:].reshape(-1,): ax.tick_params(labelleft = False, left = False)
-    # legend
-    fig.colorbar(heatmap)
-    # fig.legend()
-
-    fig.tight_layout()
-
-    saving_dir = f"{plot_dir}/projections"
+    saving_dir = f"{fdir}/overlaps"
     if not os.path.isdir(saving_dir):
         os.makedirs(saving_dir) 
 

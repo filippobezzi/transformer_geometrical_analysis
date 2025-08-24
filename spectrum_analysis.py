@@ -1,18 +1,13 @@
-import matplotlib
 import numpy as np
 import torch
 
 from tqdm import tqdm
 from transformers import GPT2Tokenizer, GPT2LMHeadModel
 
+from utils.constants import *
 from utils.retrieval import get_activations, extract_weights
 from utils.storage import save_overlaps, save_svals
-from utils.visualization import plot_layer_overlaps, plot_layer_svals
-
-# constants of the model
-EMBEDDING_DIMENTIONS = 768
-MAXIMUM_INPUT_LENGTH = 1024
-N_BLOCKS = 12
+from utils.visualization import plot_svals_all_blocks, plot_overlaps_all_blocks
 
 def load_model(gpt2_version: str = None):
 
@@ -24,35 +19,25 @@ def load_model(gpt2_version: str = None):
 
 
 def main():
-
     model, tokenizer = load_model()
-    TOTAL_VOCAB_SIZE = tokenizer.vocab_size
 
     ### PROMPT CREATION/SELECTION
     n_prompts = 100
     n_tokens = 100
     prompt_type = "eco"
-    data_dir = None
-    plot_dir = None
 
     print("\nCreating prompts.")
     # prompts are randomly generated
     if prompt_type == "random":
-        data_dir = "random/data"
-        plot_dir = "random/plots"
-        with torch.no_grad():
-            prompts = [torch.randint(0, TOTAL_VOCAB_SIZE, size = (1, n_tokens)) for _ in range(n_prompts)]
+        prompts = [torch.randint(0, TOTAL_VOCAB_SIZE, size = (1, n_tokens)) for _ in range(n_prompts)]
     
     # we take as prompts `n_prompts` random `n_tokens`-long passages of an umberto eco essay
     elif prompt_type == "eco":
-        data_dir = "eco/data"
-        plot_dir = "eco/plots"
         with open("eco.txt", "r") as f:
             phrases = [line.strip() for line in f.readlines() if line.strip()]
-        with torch.no_grad():
-            tokens = tokenizer(phrases[0], return_tensors="pt")["input_ids"]
+        tokens = tokenizer(phrases[0], return_tensors="pt")["input_ids"]
         prompts = []
-        for i in range(n_prompts):
+        for _ in range(n_prompts):
             idx = np.random.randint(0, tokens.shape[1] - n_tokens)
             prompts.append(tokens[:,idx:(idx + n_tokens)])
 
@@ -66,8 +51,7 @@ def main():
 
     # runnning all the prompts to obtain all activations
     for prompt in tqdm(prompts):
-        with torch.no_grad():
-            _ = model(prompt)
+        _ = model(prompt)
 
     ###
 
@@ -77,7 +61,6 @@ def main():
     ###
 
     sublayer_selection = input_activations.keys()
-
 
     def reorder_sublayer_acts(sublayer: str, activations: dict):
         """
@@ -116,7 +99,6 @@ def main():
         w_sigmas = []
         svals_dict = {}
         overlaps_dict = {}
-        projections_dict = {}
         for idx, X in acts.items():
             W = torch.transpose(weights[f"h.{idx}.{sublayer}.weight"], 0, 1)
             _, N, D = X.shape
@@ -154,27 +136,21 @@ def main():
             projections = torch.matmul(w_Vt, act_cov_eigvecs)
             overlap = torch.max(torch.abs(projections), dim = 0)[0]
 
-
             ###
 
             # marchenko-pastur parameters
             n, m = W.shape
             sigma = torch.std(w_centered)
 
-
             w_sigmas.append(sigma.detach().numpy())
             svals_dict[f"{idx}"] = w_svals.detach().numpy()
             overlaps_dict[f"{idx}"] = overlap.detach().numpy()
-            projections_dict[f"{idx}"] = projections.detach().numpy().reshape(-1,)
 
 
-        # matplotlib.rcParams.update({'font.size': 20})
-        save_svals(svals_dict, np.array(w_sigmas).reshape(1,-1), sublayer, data_dir)
-        save_overlaps(overlaps_dict, sublayer, data_dir)
-        # save_projections(projections_dict, sublayer, data_dir)
-        plot_layer_svals(sublayer, m, n, data_dir, plot_dir)
-        plot_layer_overlaps(sublayer, m, n, data_dir, plot_dir)
-        # plot_layer_projections(sublayer, m, n, data_dir, plot_dir)
+        save_svals(svals_dict, np.array(w_sigmas).reshape(1,-1), sublayer)
+        save_overlaps(overlaps_dict, sublayer)
+        plot_svals_all_blocks(sublayer, m, n)
+        plot_overlaps_all_blocks(sublayer, m, n)
     return
 
 if __name__=="__main__":
